@@ -11,11 +11,13 @@ const AdvertisementsPage = () => {
   const unique = (arr: string[]) => Array.from(new Set(arr.filter(Boolean)));
 
   const filtered = advertisements.filter((ad) => {
-    return (
-      (!location || ad.realEstate.location === location) &&
-      (!disposition || ad.realEstate.disposition === disposition) &&
-      (!maxPrice || Number(ad.price) <= Number(maxPrice))
-    );
+    if (!ad.realEstate) return false;
+    const matchesLocation =
+      !location || ad.realEstate.address.city === location;
+    const matchesDisposition =
+      !disposition || ad.realEstate.disposition === disposition;
+    const matchesPrice = !maxPrice || Number(ad.price) <= Number(maxPrice);
+    return matchesLocation && matchesDisposition && matchesPrice;
   });
 
   const fetchAdvertisementList = async () => {
@@ -46,13 +48,20 @@ const AdvertisementsPage = () => {
             value={location}
             onChange={(e) => setLocation(e.target.value)}>
             <option value="">Vše</option>
-            {unique(advertisements.map((a) => a.realEstate.location)).map(
-              (c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              )
-            )}
+            {unique(
+              advertisements
+                .map(
+                  (a) =>
+                    a.realEstate &&
+                    a.realEstate.address &&
+                    a.realEstate.address.city
+                )
+                .filter(Boolean)
+            ).map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -64,13 +73,15 @@ const AdvertisementsPage = () => {
             value={disposition}
             onChange={(e) => setDisposition(e.target.value)}>
             <option value="">Vše</option>
-            {unique(advertisements.map((a) => a.realEstate.disposition)).map(
-              (d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              )
-            )}
+            {unique(
+              advertisements
+                .map((a) => a.realEstate && a.realEstate.disposition)
+                .filter(Boolean)
+            ).map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -88,12 +99,12 @@ const AdvertisementsPage = () => {
       </div>
       {/* List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.length === 0 && (
+        {advertisements.length === 0 && (
           <div className="col-span-full text-center text-gray-500">
             Žádné inzeráty
           </div>
         )}
-        {filtered.map((ad) => (
+        {advertisements.map((ad) => (
           <div
             key={ad.id}
             className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
@@ -110,8 +121,9 @@ const AdvertisementsPage = () => {
             </div>
             <h2 className="font-semibold text-lg">{ad.title}</h2>
             <div className="text-gray-500 text-sm">
-              {ad.realEstate.location} • {ad.realEstate.disposition} •{" "}
-              {ad.realEstate.size} m²
+              {ad.realEstate
+                ? `${ad.realEstate.address.city}, ${ad.realEstate.address.street} • ${ad.realEstate.disposition} • ${ad.realEstate.size} m²`
+                : ""}
             </div>
             <div className="font-bold text-green-600 text-lg">
               {Number(ad.price).toLocaleString()} Kč
