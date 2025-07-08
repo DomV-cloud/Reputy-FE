@@ -5,7 +5,7 @@ import UserAdvertisementList from "../../Components/Advertisements/UserAdvertise
 import UserReferencesSection from "../../Components/UserReferencesSection/UserReferencesSection";
 import { getUserAdvertisementList } from "../../Api/Client/Advertisement/AdvertisementApi";
 import { useUser } from "../../Context/UserContext";
-import { isTokenValid } from "../../utils/auth";
+import { isTokenValid } from "../../Utils/auth";
 import { useNavigate } from "react-router";
 import { Advertisement } from "../../Types/Advertisement";
 
@@ -106,18 +106,10 @@ const HomePage = () => {
   if (error) return <div>Chyba při načítání inzerátů</div>;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
+    <div className="w-full px-4 py-6 space-y-8">
       {/* Profil stand-alone component*/}
       <section className="bg-white p-6 rounded-2xl shadow flex items-center gap-6">
-        {mockUser.profileImage ? (
-          <img
-            src={mockUser.profileImage}
-            alt="Profil"
-            className="w-20 h-20 rounded-full"
-          />
-        ) : (
-          <ProfileImage firstNameLetter={user?.firstName.charAt(0)} />
-        )}
+        <ProfileImage firstNameLetter={user?.firstName.charAt(0)} />
         <div>
           <h2 className="text-xl font-semibold">{user?.firstName}</h2>
           <p className="text-sm text-gray-500">{mockUser.role}</p>

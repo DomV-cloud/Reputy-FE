@@ -4,80 +4,9 @@ import { Advertisement } from "../../Types/Advertisement";
 import { getFilters } from "../../Api/Client/Advertisement/AdvertisementFilters";
 import AdvertisementFilters from "../../Components/Advertisements/AdvertisementFilters";
 import ProfileImage from "../../Components/ProfileImage";
+import { translateDisposition } from "../../Utils/Translations";
+import AdvertisementPagination from "../../Components/Advertisements/AdvertisementPagination";
 
-// --- Disposition translation helper ---
-const translateDisposition = (disposition: string) => {
-  switch (disposition) {
-    case "OnePlusOne":
-      return "1+1";
-    case "OneKK":
-      return "1+kk";
-    case "TwoPlusOne":
-      return "2+1";
-    case "TwoKK":
-      return "2+kk";
-    case "ThreePlusOne":
-      return "3+1";
-    case "ThreeKK":
-      return "3+kk";
-    case "FourPlusOne":
-      return "4+1";
-    case "FourKK":
-      return "4+kk";
-    case "FivePlusOne":
-      return "5+1";
-    case "FiveKK":
-      return "5+kk";
-    default:
-      return disposition;
-  }
-};
-
-// --- Pagination Component ---
-type PaginationProps = {
-  totalPages: number;
-  pageNumber: number;
-  handlePrevPage: () => void;
-  handleNextPage: () => void;
-  handlePageClick: (page: number) => void;
-};
-const AdvertisementPagination = ({
-  totalPages,
-  pageNumber,
-  handlePrevPage,
-  handleNextPage,
-  handlePageClick,
-}: PaginationProps) =>
-  totalPages >= 1 ? (
-    <div className="flex justify-center items-center gap-2 mt-8">
-      <button
-        onClick={handlePrevPage}
-        disabled={pageNumber === 1}
-        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-        Předchozí
-      </button>
-      {[...Array(totalPages)].map((_, idx) => (
-        <button
-          key={idx + 1}
-          onClick={() => handlePageClick(idx + 1)}
-          className={`px-3 py-1 rounded ${
-            pageNumber === idx + 1
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}>
-          {idx + 1}
-        </button>
-      ))}
-      <button
-        onClick={handleNextPage}
-        disabled={pageNumber === totalPages}
-        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-        Další
-      </button>
-    </div>
-  ) : null;
-
-// --- Main Page ---
 type Filters = {
   cities: string[];
   dispositions: string[];
@@ -147,7 +76,7 @@ const AdvertisementsPage = () => {
   const resetPage = () => setPageNumber(1);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Inzeráty</h1>
       {/* Filters */}
       <AdvertisementFilters
@@ -161,7 +90,7 @@ const AdvertisementsPage = () => {
         resetPage={resetPage}
       />
       {/* List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-screen overflow-y-auto">
         {advertisements.length === 0 && (
           <div className="col-span-full text-center text-gray-500">
             Žádné inzeráty
@@ -187,7 +116,11 @@ const AdvertisementsPage = () => {
               <h2 className="font-semibold text-lg">{ad.title}</h2>
               <div className="text-gray-500 text-sm">
                 {ad.realEstate
-                  ? `${ad.realEstate.address.city}, ${ad.realEstate.address.street} • ${translateDisposition(ad.realEstate.disposition)} • ${ad.realEstate.size} m²`
+                  ? `${ad.realEstate.address.city}, ${
+                      ad.realEstate.address.street
+                    } • ${translateDisposition(ad.realEstate.disposition)} • ${
+                      ad.realEstate.size
+                    } m²`
                   : ""}
               </div>
               <div className="font-bold text-green-600 text-lg">
