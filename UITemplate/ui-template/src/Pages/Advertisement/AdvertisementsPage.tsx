@@ -1,38 +1,58 @@
 import { useEffect, useState } from "react";
-import { getAllAdvertisements } from "../../Api/Client/Advertisement/AdvertisementApi";
+import { searchAdvertisements } from "../../Api/Client/Advertisement/AdvertisementApi";
 import { Advertisement } from "../../Types/Advertisement";
+import { getFilters } from "../../Api/Client/Advertisement/AdvertisementFilters";
+
+type Filters = {
+  cities: string[];
+  dispositions: string[];
+};
 
 const AdvertisementsPage = () => {
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
-  const [location, setLocation] = useState("");
-  const [disposition, setDisposition] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-
-  const unique = (arr: string[]) => Array.from(new Set(arr.filter(Boolean)));
-
-  const filtered = advertisements.filter((ad) => {
-    if (!ad.realEstate) return false;
-    const matchesLocation =
-      !location || ad.realEstate.address.city === location;
-    const matchesDisposition =
-      !disposition || ad.realEstate.disposition === disposition;
-    const matchesPrice = !maxPrice || Number(ad.price) <= Number(maxPrice);
-    return matchesLocation && matchesDisposition && matchesPrice;
+  const [filters, setFilters] = useState<Filters>({
+    cities: [],
+    dispositions: [],
   });
 
-  const fetchAdvertisementList = async () => {
-    const response = await getAllAdvertisements();
-    if (!response || !response.data) {
-      alert("Chyba při načítání inzerátů");
-      return;
+  const [city, setCity] = useState("");
+  const [disposition, setDisposition] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+
+  // Načte pouze backendově filtrovaná data!
+  const fetchFilteredAdvertisements = async () => {
+    try {
+      const response = await searchAdvertisements({
+        city: city || undefined,
+        disposition: disposition || undefined,
+        maxPrice: maxPrice || undefined,
+        pageNumber,
+        pageSize: 10,
+      });
+      setAdvertisements(response.data.data); // data by měla být přímo pole inzerátů
+    } catch (error) {
+      console.error("Chyba při načítání:", error);
     }
-    console.log("Fetched advertisements:", response.data);
-    setAdvertisements(response.data);
+  };
+
+  // Načti možnosti filtrů (města, dispozice)
+  const fetchAllFilters = async () => {
+    try {
+      const response = await getFilters();
+      setFilters(response.data);
+    } catch (error) {
+      console.error("Chyba při načítání filtrů:", error);
+    }
   };
 
   useEffect(() => {
-    fetchAdvertisementList();
+    fetchAllFilters();
   }, []);
+
+  useEffect(() => {
+    fetchFilteredAdvertisements();
+  }, [city, disposition, maxPrice, pageNumber]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -45,19 +65,10 @@ const AdvertisementsPage = () => {
           </label>
           <select
             className="mt-1 block w-40 rounded-md border border-gray-300 p-2"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}>
+            value={city}
+            onChange={(e) => setCity(e.target.value)}>
             <option value="">Vše</option>
-            {unique(
-              advertisements
-                .map(
-                  (a) =>
-                    a.realEstate &&
-                    a.realEstate.address &&
-                    a.realEstate.address.city
-                )
-                .filter(Boolean)
-            ).map((c) => (
+            {filters.cities?.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
@@ -73,11 +84,7 @@ const AdvertisementsPage = () => {
             value={disposition}
             onChange={(e) => setDisposition(e.target.value)}>
             <option value="">Vše</option>
-            {unique(
-              advertisements
-                .map((a) => a.realEstate && a.realEstate.disposition)
-                .filter(Boolean)
-            ).map((d) => (
+            {filters.dispositions?.map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>

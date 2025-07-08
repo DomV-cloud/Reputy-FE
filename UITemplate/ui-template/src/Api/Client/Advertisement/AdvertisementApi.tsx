@@ -15,7 +15,7 @@ export const getAllAdvertisements = async () => {
 };
 
 export const searchAdvertisements = async (filters: {
-  location?: string;
+  city?: string;
   disposition?: string;
   maxPrice?: string;
   pageNumber?: number;
@@ -23,11 +23,11 @@ export const searchAdvertisements = async (filters: {
 }) => {
   const params = new URLSearchParams();
 
-  if (filters.location) params.append("location", filters.location);
+  if (filters.city) params.append("city", filters.city);
   if (filters.disposition) params.append("disposition", filters.disposition);
   if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
   params.append("pageNumber", String(filters.pageNumber || 1));
   params.append("pageSize", String(filters.pageSize || 9));
 
-  return apiClient.get(`/advertisements/search?${params.toString()}`);
+  return apiClient.get(`/advertisement/search?${params.toString()}`);
 };
