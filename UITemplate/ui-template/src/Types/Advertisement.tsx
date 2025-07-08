@@ -6,7 +6,6 @@ export interface AdvertisementAddress {
 
 export interface AdvertisementRealEstate {
   disposition: string;
-  location: string;
   size: number;
   address: AdvertisementAddress;
 }
@@ -16,4 +15,14 @@ export interface Advertisement {
   title: string;
   price: string;
   realEstate: AdvertisementRealEstate;
+  landLord: Landlord;
+  imageUrl?: string;
+}
+
+export interface Landlord {
+  id: string;
+  fullName: string;
+  averageRating: number;
+  isVerified: boolean;
+  avatarUrl?: string;
 }

@@ -2,7 +2,82 @@ import { useEffect, useState } from "react";
 import { searchAdvertisements } from "../../Api/Client/Advertisement/AdvertisementApi";
 import { Advertisement } from "../../Types/Advertisement";
 import { getFilters } from "../../Api/Client/Advertisement/AdvertisementFilters";
+import AdvertisementFilters from "../../Components/Advertisements/AdvertisementFilters";
+import ProfileImage from "../../Components/ProfileImage";
 
+// --- Disposition translation helper ---
+const translateDisposition = (disposition: string) => {
+  switch (disposition) {
+    case "OnePlusOne":
+      return "1+1";
+    case "OneKK":
+      return "1+kk";
+    case "TwoPlusOne":
+      return "2+1";
+    case "TwoKK":
+      return "2+kk";
+    case "ThreePlusOne":
+      return "3+1";
+    case "ThreeKK":
+      return "3+kk";
+    case "FourPlusOne":
+      return "4+1";
+    case "FourKK":
+      return "4+kk";
+    case "FivePlusOne":
+      return "5+1";
+    case "FiveKK":
+      return "5+kk";
+    default:
+      return disposition;
+  }
+};
+
+// --- Pagination Component ---
+type PaginationProps = {
+  totalPages: number;
+  pageNumber: number;
+  handlePrevPage: () => void;
+  handleNextPage: () => void;
+  handlePageClick: (page: number) => void;
+};
+const AdvertisementPagination = ({
+  totalPages,
+  pageNumber,
+  handlePrevPage,
+  handleNextPage,
+  handlePageClick,
+}: PaginationProps) =>
+  totalPages >= 1 ? (
+    <div className="flex justify-center items-center gap-2 mt-8">
+      <button
+        onClick={handlePrevPage}
+        disabled={pageNumber === 1}
+        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+        Předchozí
+      </button>
+      {[...Array(totalPages)].map((_, idx) => (
+        <button
+          key={idx + 1}
+          onClick={() => handlePageClick(idx + 1)}
+          className={`px-3 py-1 rounded ${
+            pageNumber === idx + 1
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 hover:bg-gray-300"
+          }`}>
+          {idx + 1}
+        </button>
+      ))}
+      <button
+        onClick={handleNextPage}
+        disabled={pageNumber === totalPages}
+        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+        Další
+      </button>
+    </div>
+  ) : null;
+
+// --- Main Page ---
 type Filters = {
   cities: string[];
   dispositions: string[];
@@ -34,6 +109,7 @@ const AdvertisementsPage = () => {
       });
       setAdvertisements(response.data.data);
       setTotalPages(response.data.totalPages || 1);
+      console.log("Načtené inzeráty:", response.data.data[0]);
     } catch (error) {
       console.error("Chyba při načítání:", error);
     }
@@ -68,65 +144,22 @@ const AdvertisementsPage = () => {
     setPageNumber(page);
   };
 
+  const resetPage = () => setPageNumber(1);
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Inzeráty</h1>
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow p-4 mb-8 flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Město
-          </label>
-          <select
-            className="mt-1 block w-40 rounded-md border border-gray-300 p-2"
-            value={city}
-            onChange={(e) => {
-              setCity(e.target.value);
-              setPageNumber(1);
-            }}>
-            <option value="">Vše</option>
-            {filters.cities?.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Dispozice
-          </label>
-          <select
-            className="mt-1 block w-40 rounded-md border border-gray-300 p-2"
-            value={disposition}
-            onChange={(e) => {
-              setDisposition(e.target.value);
-              setPageNumber(1);
-            }}>
-            <option value="">Vše</option>
-            {filters.dispositions?.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Max. cena
-          </label>
-          <input
-            type="number"
-            className="mt-1 block w-32 rounded-md border border-gray-300 p-2"
-            value={maxPrice}
-            onChange={(e) => {
-              setMaxPrice(e.target.value);
-              setPageNumber(1);
-            }}
-            placeholder="např. 20000"
-          />
-        </div>
-      </div>
+      <AdvertisementFilters
+        filters={filters}
+        city={city}
+        setCity={setCity}
+        disposition={disposition}
+        setDisposition={setDisposition}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        resetPage={resetPage}
+      />
       {/* List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {advertisements.length === 0 && (
@@ -134,62 +167,102 @@ const AdvertisementsPage = () => {
             Žádné inzeráty
           </div>
         )}
-        {advertisements.map((ad) => (
-          <div
-            key={ad.id}
-            className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
-            <div className="h-40 bg-gray-100 rounded mb-2 flex items-center justify-center">
-              {ad.image ? (
-                <img
-                  src={ad.image}
-                  alt={ad.title}
-                  className="h-full w-full object-cover rounded"
+        {advertisements.map((ad) => {
+          const landlord = ad.landLord || {};
+          return (
+            <div
+              key={ad.id}
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+              <div className="h-40 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                {ad.imageUrl ? (
+                  <img
+                    src={ad.imageUrl}
+                    alt={ad.title}
+                    className="h-full w-full object-cover rounded"
+                  />
+                ) : (
+                  <span className="text-gray-400">Bez obrázku</span>
+                )}
+              </div>
+              <h2 className="font-semibold text-lg">{ad.title}</h2>
+              <div className="text-gray-500 text-sm">
+                {ad.realEstate
+                  ? `${ad.realEstate.address.city}, ${ad.realEstate.address.street} • ${translateDisposition(ad.realEstate.disposition)} • ${ad.realEstate.size} m²`
+                  : ""}
+              </div>
+              <div className="font-bold text-green-600 text-lg">
+                {Number(ad.price).toLocaleString()} Kč
+              </div>
+              {/* Landlord Info */}
+              <div className="flex items-center gap-3 mt-2 border-t pt-2">
+                <ProfileImage
+                  profileImage={landlord.avatarUrl}
+                  firstNameLetter={landlord.fullName?.charAt(0)}
                 />
-              ) : (
-                <span className="text-gray-400">Bez obrázku</span>
-              )}
+
+                <div>
+                  <div className="font-medium flex items-center gap-1">
+                    {landlord.fullName}
+                    {landlord.isVerified && (
+                      <span
+                        className="ml-1 inline-block text-blue-500"
+                        title="Ověřený pronajímatel">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5.121 17.804A9.953 9.953 0 0112 15c2.21 0 4.215.735 5.879 1.896M15 12h6m-3-3l3 3-3 3m-6 6a9.953 9.953 0 01-6.879-2.196M9 12H3m3-3l-3 3 3 3"
+                          />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    {landlord.averageRating && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">
+                          {landlord.averageRating}
+                        </span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 text-yellow-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 17.27L18.18 21 16.54 13.97 22 9.24l-9.19-.73L12 2 10.18 8.51 1 9.24l7.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                    <span>
+                      {landlord.isVerified ? "Ověřený" : "Neověřený"}{" "}
+                      pronajímatel
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h2 className="font-semibold text-lg">{ad.title}</h2>
-            <div className="text-gray-500 text-sm">
-              {ad.realEstate
-                ? `${ad.realEstate.address.city}, ${ad.realEstate.address.street} • ${ad.realEstate.disposition} • ${ad.realEstate.size} m²`
-                : ""}
-            </div>
-            <div className="font-bold text-green-600 text-lg">
-              {Number(ad.price).toLocaleString()} Kč
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {/* Pagination */}
-      {totalPages >= 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={handlePrevPage}
-            disabled={pageNumber === 1}
-            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-            Předchozí
-          </button>
-          {[...Array(totalPages)].map((_, idx) => (
-            <button
-              key={idx + 1}
-              onClick={() => handlePageClick(idx + 1)}
-              className={`px-3 py-1 rounded ${
-                pageNumber === idx + 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}>
-              {idx + 1}
-            </button>
-          ))}
-          <button
-            onClick={handleNextPage}
-            disabled={pageNumber === totalPages}
-            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-            Další
-          </button>
-        </div>
-      )}
+      <AdvertisementPagination
+        totalPages={totalPages}
+        pageNumber={pageNumber}
+        handlePrevPage={handlePrevPage}
+        handleNextPage={handleNextPage}
+        handlePageClick={handlePageClick}
+      />
     </div>
   );
 };
