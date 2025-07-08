@@ -23,7 +23,6 @@ const AdvertisementsPage = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Načte pouze backendově filtrovaná data!
   const fetchFilteredAdvertisements = async () => {
     try {
       const response = await searchAdvertisements({
@@ -33,14 +32,13 @@ const AdvertisementsPage = () => {
         pageNumber,
         pageSize: PAGE_SIZE,
       });
-      setAdvertisements(response.data.data); // data by měla být přímo pole inzerátů
-      setTotalPages(response.data.totalPages || 1); // assuming backend returns totalPages
+      setAdvertisements(response.data.data);
+      setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error("Chyba při načítání:", error);
     }
   };
 
-  // Načti možnosti filtrů (města, dispozice)
   const fetchAllFilters = async () => {
     try {
       const response = await getFilters();
