@@ -8,6 +8,8 @@ type Filters = {
   dispositions: string[];
 };
 
+const PAGE_SIZE = 10;
+
 const AdvertisementsPage = () => {
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   const [filters, setFilters] = useState<Filters>({
@@ -19,6 +21,7 @@ const AdvertisementsPage = () => {
   const [disposition, setDisposition] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Načte pouze backendově filtrovaná data!
   const fetchFilteredAdvertisements = async () => {
@@ -28,9 +31,10 @@ const AdvertisementsPage = () => {
         disposition: disposition || undefined,
         maxPrice: maxPrice || undefined,
         pageNumber,
-        pageSize: 10,
+        pageSize: PAGE_SIZE,
       });
       setAdvertisements(response.data.data); // data by měla být přímo pole inzerátů
+      setTotalPages(response.data.totalPages || 1); // assuming backend returns totalPages
     } catch (error) {
       console.error("Chyba při načítání:", error);
     }
@@ -54,6 +58,18 @@ const AdvertisementsPage = () => {
     fetchFilteredAdvertisements();
   }, [city, disposition, maxPrice, pageNumber]);
 
+  const handlePrevPage = () => {
+    setPageNumber((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setPageNumber((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageClick = (page: number) => {
+    setPageNumber(page);
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Inzeráty</h1>
@@ -66,7 +82,10 @@ const AdvertisementsPage = () => {
           <select
             className="mt-1 block w-40 rounded-md border border-gray-300 p-2"
             value={city}
-            onChange={(e) => setCity(e.target.value)}>
+            onChange={(e) => {
+              setCity(e.target.value);
+              setPageNumber(1);
+            }}>
             <option value="">Vše</option>
             {filters.cities?.map((c) => (
               <option key={c} value={c}>
@@ -82,7 +101,10 @@ const AdvertisementsPage = () => {
           <select
             className="mt-1 block w-40 rounded-md border border-gray-300 p-2"
             value={disposition}
-            onChange={(e) => setDisposition(e.target.value)}>
+            onChange={(e) => {
+              setDisposition(e.target.value);
+              setPageNumber(1);
+            }}>
             <option value="">Vše</option>
             {filters.dispositions?.map((d) => (
               <option key={d} value={d}>
@@ -99,7 +121,10 @@ const AdvertisementsPage = () => {
             type="number"
             className="mt-1 block w-32 rounded-md border border-gray-300 p-2"
             value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
+            onChange={(e) => {
+              setMaxPrice(e.target.value);
+              setPageNumber(1);
+            }}
             placeholder="např. 20000"
           />
         </div>
@@ -138,6 +163,35 @@ const AdvertisementsPage = () => {
           </div>
         ))}
       </div>
+      {/* Pagination */}
+      {totalPages >= 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={handlePrevPage}
+            disabled={pageNumber === 1}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+            Předchozí
+          </button>
+          {[...Array(totalPages)].map((_, idx) => (
+            <button
+              key={idx + 1}
+              onClick={() => handlePageClick(idx + 1)}
+              className={`px-3 py-1 rounded ${
+                pageNumber === idx + 1
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}>
+              {idx + 1}
+            </button>
+          ))}
+          <button
+            onClick={handleNextPage}
+            disabled={pageNumber === totalPages}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+            Další
+          </button>
+        </div>
+      )}
     </div>
   );
 };
