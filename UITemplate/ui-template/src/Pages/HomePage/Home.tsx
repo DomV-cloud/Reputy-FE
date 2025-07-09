@@ -19,10 +19,6 @@ const HomePage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const mockUser = {
-    name: "Jan Novák",
-    role: "Pronajímatel",
-    rating: 4.5,
-    profileImage: "",
     references: [
       {
         id: 1,
@@ -39,49 +35,17 @@ const HomePage = () => {
         date: "2025-05-22",
       },
     ],
-    advertisements: [
-      {
-        id: 1,
-        title: "2+kk Praha 5",
-        image: "",
-        location: "Praha 5",
-        price: "18 000 Kč",
-      },
-      {
-        id: 2,
-        title: "1+1 Brno",
-        image: "",
-        location: "Brno-střed",
-        price: "13 500 Kč",
-      },
-      {
-        id: 3,
-        title: "2+kk Praha 5",
-        image: "",
-        location: "Praha 5",
-        price: "18 000 Kč",
-      },
-      {
-        id: 4,
-        title: "2+kk Praha 5",
-        image: "",
-        location: "Praha 5",
-        price: "18 000 Kč",
-      },
-      {
-        id: 5,
-        title: "2+kk Praha 5",
-        image: "",
-        location: "Praha 5",
-        price: "18 000 Kč",
-      },
-    ],
   };
   const fetchUserAdvertisements = async () => {
     try {
       console.log("User:", user);
       const response = await getUserAdvertisementList();
       if (!response || !response.data) {
+        setError(true);
+        return;
+      }
+
+      if (!user) {
         setError(true);
         return;
       }
@@ -112,21 +76,19 @@ const HomePage = () => {
         <ProfileImage firstNameLetter={user?.firstName.charAt(0)} />
         <div>
           <h2 className="text-xl font-semibold">{user?.firstName}</h2>
-          <p className="text-sm text-gray-500">{mockUser.role}</p>
+          <p className="text-sm text-gray-500">{user?.role}</p>
           <div className="flex items-center mt-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <StarIcon
                 key={i}
                 className={`h-5 w-5 ${
-                  i < Math.floor(mockUser.rating)
+                  i < Math.floor(user?.rating ?? 0)
                     ? "text-green-500"
                     : "text-gray-300"
                 }`}
               />
             ))}
-            <span className="text-sm ml-2 text-gray-500">
-              {mockUser.rating.toFixed(1)}
-            </span>
+            <span className="text-sm ml-2 text-gray-500">{user?.rating}</span>
           </div>
         </div>
       </section>

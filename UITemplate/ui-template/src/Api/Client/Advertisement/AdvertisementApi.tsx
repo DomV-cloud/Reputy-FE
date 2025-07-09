@@ -1,4 +1,5 @@
 import {
+  GET_ADVERTISEMENT_DETAIL,
   GET_ALL_ADVERTISEMENTS,
   GET_USER_ADVERTISEMENT,
 } from "../../../Configuration/ApiEndpointUri/User/UserUri";
@@ -30,4 +31,13 @@ export const searchAdvertisements = async (filters: {
   params.append("pageSize", String(filters.pageSize || 9));
 
   return apiClient.get(`/advertisement/search?${params.toString()}`);
+};
+
+export const getAdvertisementDetail = async (advertisementId: string) => {
+  const url = GET_ADVERTISEMENT_DETAIL.replace(
+    "{advertisementId}",
+    advertisementId
+  );
+  console.log("Url for advertisement detail:", url);
+  return apiClient.get(url);
 };

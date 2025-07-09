@@ -16,10 +16,25 @@ function LoginForm() {
     try {
       const response = await userLogin(email, password);
 
-      const { firstName, lastName, userEmail, token } = response.data;
+      const {
+        firstName,
+        lastName,
+        userEmail,
+        token,
+        role,
+        rating,
+        profileImageUrl,
+      } = response.data;
 
       localStorage.setItem("token", token);
-      setUser({ firstName, lastName, userEmail });
+      setUser({
+        firstName,
+        lastName,
+        userEmail,
+        role,
+        rating,
+        profileImageUrl,
+      });
 
       navigate("/");
     } catch (err) {

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import AdvertisementCard from "./AdvertisementCard";
+import AdvertisementCardFull from "./AdvertisementCard";
 import ChevronLeftIcon from "../../Icons/ChevronLeftIcon";
 import ChevronRightIcon from "../../Icons/ChevronRightIcon";
 import { useNavigate } from "react-router-dom";
@@ -53,18 +53,13 @@ function UserAdvertisementList({
             </button>
           </>
         )
-      )}{" "}
-      : {}
+      )}
       <div
         ref={scrollRef}
         className="flex overflow-x-auto space-x-4 no-scrollbar scroll-smooth pr-4">
         {advertisements.map((advertisement) => (
-          <div key={advertisement.id} className="flex-shrink-0 w-72">
-            <AdvertisementCard
-              title={advertisement.title}
-              location={advertisement.location}
-              price={advertisement.price}
-            />
+          <div key={advertisement.id} className="flex-shrink-0 w-80">
+            <AdvertisementCardFull ad={advertisement} />
           </div>
         ))}
       </div>

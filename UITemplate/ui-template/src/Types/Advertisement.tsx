@@ -17,6 +17,7 @@ export interface Advertisement {
   realEstate: AdvertisementRealEstate;
   landLord: Landlord;
   imageUrl?: string;
+  description?: string;
 }
 
 export interface Landlord {

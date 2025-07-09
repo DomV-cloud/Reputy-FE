@@ -12,6 +12,9 @@ const Home = lazy(() => import("../Pages/HomePage/Home"));
 const Advertisement = lazy(
   () => import("../Pages/Advertisement/AdvertisementsPage")
 );
+const AdvertisementDetail = lazy(
+  () => import("../Pages/Advertisement/AdvertisementDetailPage")
+);
 
 const NotFound = lazy(
   () => import("../Pages/StatusPages/NotFoundPage/NotFound")
@@ -43,6 +46,16 @@ const AppRoutes = () => (
             <ProtectedRoute>
               <Layout>
                 <Advertisement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/advertisement/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AdvertisementDetail />
               </Layout>
             </ProtectedRoute>
           }
